@@ -1,13 +1,13 @@
+server:
+  port: 8080
+
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5433/menu
-    username: postgres
-    password: Musica
-    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/ragdb
+    username: rag
+    password: rag
 
-  jpa:
-    hibernate:
-      ddl-auto: update
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-    show-sql: true
-    open-in-view: false
+ollama:
+  base-url: http://localhost:11434
+  model: phi3
+
