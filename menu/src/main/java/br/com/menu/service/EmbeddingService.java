@@ -17,7 +17,7 @@ public class EmbeddingService {
     @Value("${ollama.base-url}")
     private String baseUrl;
 
-    @Value("${ollama.model}")
+    @Value("${ollama.embedding-model}")
     private String model;
 
     private final WebClient webClient;
@@ -35,6 +35,10 @@ public class EmbeddingService {
                 .retrieve()
                 .bodyToMono(JsonNode.class)
                 .block();
+
+        if (response == null || response.get("embedding") == null) {
+            throw new IllegalStateException("Resposta de embeddings inválida do Ollama: " + response);
+        }
 
         List<Double> vector = new ArrayList<>();
         response.get("embedding").forEach(v -> vector.add(v.asDouble()));

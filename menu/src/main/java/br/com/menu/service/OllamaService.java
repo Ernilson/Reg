@@ -15,7 +15,7 @@ public class OllamaService {
     @Value("${ollama.base-url}")
     private String baseUrl;
 
-    @Value("${ollama.model}")
+    @Value("${ollama.chat-model}")
     private String model;
 
     private final WebClient webClient;

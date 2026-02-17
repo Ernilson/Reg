@@ -9,5 +9,6 @@ spring:
 
 ollama:
   base-url: http://localhost:11434
-  model: phi3
+  chat-model: phi3
+  embedding-model: nomic-embed-text
 
