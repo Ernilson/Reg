@@ -16,25 +16,28 @@ public class OllamaService {
     private String baseUrl;
 
     @Value("${ollama.chat-model}")
-    private String model;
+    private String chatModel;
 
     private final WebClient webClient;
 
     public String generate(String prompt) {
-
         Map<String, Object> body = Map.of(
-                "model", model,
+                "model", chatModel,
                 "prompt", prompt,
                 "stream", false
         );
 
-        return webClient.post()
+        JsonNode response = webClient.post()
                 .uri(baseUrl + "/api/generate")
                 .bodyValue(body)
                 .retrieve()
                 .bodyToMono(JsonNode.class)
-                .map(response -> response.get("response").asText())
                 .block();
+
+        if (response == null || response.get("response") == null) {
+            throw new IllegalStateException("Resposta inválida do Ollama: " + response);
+        }
+
+        return response.get("response").asText();
     }
 }
-

@@ -2,27 +2,31 @@ package br.com.menu.ragController;
 
 import br.com.menu.service.RagService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Map;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/rag")
 @RequiredArgsConstructor
+@RequestMapping("/rag")
 public class RagController {
 
     private final RagService ragService;
 
-    @PostMapping("/ask")
-    public String ask(@RequestBody Map<String, String> body) {
+    public static class AskRequest {
 
-        return ragService.ask(
-                body.get("question"),
-                body.get("context")
-        );
+        private String question;
+
+        public String getQuestion() {
+            return question;
+        }
+
+        public void setQuestion(String question) {
+            this.question = question;
+        }
+    }
+
+
+    @PostMapping("/ask")
+    public RagService.RagAnswer ask(@RequestBody AskRequest req) {
+        return ragService.ask(req.getQuestion());
     }
 }
-

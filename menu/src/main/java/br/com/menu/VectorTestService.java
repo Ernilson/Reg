@@ -19,6 +19,7 @@ public class VectorTestService {
         insert("doc1", "RAG combina busca vetorial com LLM para responder com contexto.");
         insert("doc2", "Spring Boot é um framework Java para APIs e microserviços.");
         insert("doc3", "pgvector permite armazenar e buscar embeddings no PostgreSQL.");
+        insert("doc4", "pgvector permite armazenar e buscar embeddings no PostgreSQL.");
     }
 
     private void insert(String source, String content) {

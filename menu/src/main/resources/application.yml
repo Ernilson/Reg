@@ -12,3 +12,5 @@ ollama:
   chat-model: phi3
   embedding-model: nomic-embed-text
 
+rag:
+  top-k: 3
