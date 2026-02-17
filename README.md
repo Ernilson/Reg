@@ -17,6 +17,8 @@ CREATE TABLE IF NOT EXISTS documents (
 CREATE INDEX IF NOT EXISTS idx_documents_embedding
 ON documents USING hnsw (embedding vector_cosine_ops);
 ------------------------------------------------------------
+modelo leve
+docker exec -it ollama ollama pull phi3
 
 o modelo de embeddings no Ollama
 docker exec -it ollama ollama pull nomic-embed-text
