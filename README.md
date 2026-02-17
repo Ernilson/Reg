@@ -23,6 +23,18 @@ docker exec -it ollama ollama pull phi3
 o modelo de embeddings no Ollama
 docker exec -it ollama ollama pull nomic-embed-text
 
+Instale o modelo de embedding agora:
+ollama pull nomic-embed-text
+
+Teste manual depois disso:
+
+curl http://localhost:11434/api/embeddings -d '{
+  "model": "nomic-embed-text",
+  "prompt": "teste"
+}'
+---------------------------------------------------------------------------
+
+
 # 🚀 RAG Local com Spring Boot + Ollama + PostgreSQL (pgvector)
 
 Projeto experimental de arquitetura RAG (Retrieval Augmented Generation) rodando 100% local, utilizando:
