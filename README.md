@@ -156,3 +156,4 @@ mvn spring-boot:run
 Endpoint validado:
 
 POST /rag/ask
+https://chatgpt.com/s/m_6995d19aa798819194e459e2814c2cff
