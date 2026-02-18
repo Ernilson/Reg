@@ -26,6 +26,9 @@ docker exec -it ollama ollama pull nomic-embed-text
 Instale o modelo de embedding agora:
 ollama pull nomic-embed-text
 
+Instale o modelo
+ollama pull phi3
+
 Teste manual depois disso:
 
 curl http://localhost:11434/api/embeddings -d '{
