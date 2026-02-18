@@ -11,6 +11,11 @@ public class RagController {
 
     private final RagService ragService;
 
+    @PostMapping("/ask")
+    public RagService.RagAnswer ask(@RequestBody AskRequest askRequest) {
+        return ragService.ask(askRequest.getQuestion());
+    }
+
     public static class AskRequest {
 
         private String question;
@@ -22,11 +27,7 @@ public class RagController {
         public void setQuestion(String question) {
             this.question = question;
         }
+
     }
 
-
-    @PostMapping("/ask")
-    public RagService.RagAnswer ask(@RequestBody AskRequest req) {
-        return ragService.ask(req.getQuestion());
-    }
 }

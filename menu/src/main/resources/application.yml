@@ -9,8 +9,8 @@ spring:
 
 ollama:
   base-url: http://localhost:11434
-  chat-model: phi3
-  embedding-model: nomic-embed-text
+  chat-model: phi3:latest
+  embedding-model: nomic-embed-text:latest
 
 rag:
   top-k: 3

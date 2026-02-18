@@ -1,6 +1,5 @@
 package br.com.menu.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -12,32 +11,31 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class OllamaService {
 
+    private final WebClient.Builder webClientBuilder;
+
     @Value("${ollama.base-url}")
     private String baseUrl;
 
     @Value("${ollama.chat-model}")
-    private String chatModel;
-
-    private final WebClient webClient;
+    private String model;
 
     public String generate(String prompt) {
-        Map<String, Object> body = Map.of(
-                "model", chatModel,
+
+        WebClient client = webClientBuilder.baseUrl(baseUrl).build();
+
+        Map<String, Object> request = Map.of(
+                "model", model,
                 "prompt", prompt,
                 "stream", false
         );
 
-        JsonNode response = webClient.post()
-                .uri(baseUrl + "/api/generate")
-                .bodyValue(body)
+        Map response = client.post()
+                .uri("/api/generate") // ← AQUI ESTÁ A CORREÇÃO
+                .bodyValue(request)
                 .retrieve()
-                .bodyToMono(JsonNode.class)
+                .bodyToMono(Map.class)
                 .block();
 
-        if (response == null || response.get("response") == null) {
-            throw new IllegalStateException("Resposta inválida do Ollama: " + response);
-        }
-
-        return response.get("response").asText();
+        return response.get("response").toString();
     }
 }
