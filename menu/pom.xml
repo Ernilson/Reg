@@ -81,7 +81,20 @@
             <scope>test</scope>
         </dependency>
 
-    </dependencies>
+         <dependency>
+             <groupId>org.apache.pdfbox</groupId>
+             <artifactId>pdfbox</artifactId>
+             <version>2.0.30</version>
+         </dependency>
+
+         <dependency>
+             <groupId>com.pgvector</groupId>
+             <artifactId>pgvector</artifactId>
+             <version>0.1.4</version>
+         </dependency>
+
+
+     </dependencies>
 
     <repositories>
         <repository>

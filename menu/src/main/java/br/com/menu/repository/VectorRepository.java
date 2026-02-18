@@ -1,9 +1,11 @@
 package br.com.menu.repository;
 
+import com.pgvector.PGvector;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -18,19 +20,33 @@ public class VectorRepository {
     // ==============================
     public void insertDocument(UUID id,
                                String source,
+                               int page,
+                               int chunkIndex,
                                String content,
-                               List<Double> embedding) {
+                               List<Double> embedding) throws SQLException {
 
         String sql = """
-            INSERT INTO documents (id, source, content, embedding)
-            VALUES (:id, :source, :content, :embedding::vector)
-        """;
+        INSERT INTO documents (id, source, page, chunk_index, content, embedding)
+        VALUES (:id, :source, :page, :chunkIndex, :content, :embedding)
+    """;
 
         Map<String, Object> params = new HashMap<>();
         params.put("id", id);
         params.put("source", source);
+        params.put("page", page);
+        params.put("chunkIndex", chunkIndex);
         params.put("content", content);
         params.put("embedding", toVectorLiteral(embedding));
+
+        // 👇 AQUI FICA O PGvector
+        PGvector pgVector = new PGvector(
+                Arrays.toString(embedding.stream()
+                        .mapToDouble(Double::doubleValue)
+                        .toArray())
+        );
+        ;
+
+        params.put("embedding", pgVector);
 
         jdbc.update(sql, params);
     }
@@ -84,4 +100,5 @@ public class VectorRepository {
             String content,
             double distance
     ) {}
+
 }
