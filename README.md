@@ -77,6 +77,8 @@ Aplicação Spring Boot conecta:
 - Ollama → geração de respostas e embeddings
 
 ---
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/52d22ab9-60b7-41b6-a760-f4e7100a65ba" />
+https://chatgpt.com/s/m_6995d19aa798819194e459e2814c2cff
 
 # 🐳 Docker
 
@@ -156,4 +158,4 @@ mvn spring-boot:run
 Endpoint validado:
 
 POST /rag/ask
-https://chatgpt.com/s/m_6995d19aa798819194e459e2814c2cff
+
