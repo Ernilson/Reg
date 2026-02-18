@@ -45,7 +45,7 @@ Projeto experimental de arquitetura RAG (Retrieval Augmented Generation) rodando
 - Ollama (LLM local)
 - WSL2 + Docker Desktop
 
----
+--- mvn spring-boot:run
 
 # 📌 Status Atual do Ambiente
 
