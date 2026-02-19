@@ -5,12 +5,16 @@ Então o VECTOR(768)
 
 CREATE EXTENSION IF NOT EXISTS vector;
 
-CREATE TABLE IF NOT EXISTS documents (
-  id UUID PRIMARY KEY,
-  source TEXT,
-  content TEXT NOT NULL,
-  embedding VECTOR(768) NOT NULL,
-  created_at TIMESTAMP DEFAULT now()
+DROP TABLE IF EXISTS documents;
+
+CREATE TABLE documents (
+    id UUID PRIMARY KEY,
+    source TEXT,              -- nome do arquivo ou origem
+    page INT,                 -- página do PDF
+    chunk_index INT,          -- índice do chunk
+    content TEXT,             -- texto do chunk
+    embedding vector(768),    -- embedding (nomic-embed-text = 768)
+    created_at TIMESTAMP DEFAULT now()
 );
 
 -- índice para busca vetorial (cosine)
