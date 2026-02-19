@@ -54,7 +54,7 @@ public class VectorRepository {
     // ==============================
     // SEARCH TOP-K (COSINE DISTANCE)
     // ==============================
-    public List<SearchResult> searchTopK(List<Double> queryEmbedding, int k) {
+    public List<SearchResult> searchTopK(List<Double> queryEmbedding, int k, double threshold) {
 
         String sql = """
             SELECT id,
@@ -62,6 +62,7 @@ public class VectorRepository {
                    content,
                    (embedding <=> :qvec::vector) AS distance
             FROM documents
+            WHERE (embedding <=> :qvec::vector) < :threshold
             ORDER BY embedding <=> :qvec::vector
             LIMIT :k
         """;
@@ -69,6 +70,7 @@ public class VectorRepository {
         Map<String, Object> params = new HashMap<>();
         params.put("qvec", toVectorLiteral(queryEmbedding));
         params.put("k", k);
+        params.put("threshold", threshold);
 
         return jdbc.query(sql, params, (rs, rowNum) ->
                 new SearchResult(
