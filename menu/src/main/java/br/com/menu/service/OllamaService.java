@@ -33,8 +33,9 @@ public class OllamaService {
                 "prompt", prompt,
                 "stream", false,
                 "options", Map.of(
-                        "temperature", 0.4,
-                        "num_predict", 200
+                        "temperature", 0.3,
+                        "num_predict", 200,
+                        "num_ctx", 4096
                 )
         );
 

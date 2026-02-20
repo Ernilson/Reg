@@ -37,13 +37,13 @@ public class RagService {
         // 2️⃣ Busca vetorial
         var results = vectorRepository.searchTopK(qVec, topK, threshold);
 
-        // 3️⃣ Ordena por relevância
-        var sorted = results.stream()
+        // 3️⃣ Ordena por relevância (distance)
+        var sortedByRelevance = results.stream()
                 .sorted(Comparator.comparingDouble(VectorRepository.SearchResult::distance))
                 .toList();
 
         // 4️⃣ Filtra por threshold + limita por source
-        var limitedPerSource = sorted.stream()
+        var limitedPerSource = sortedByRelevance.stream()
                 .filter(r -> r.distance() <= threshold)
                 .collect(Collectors.groupingBy(
                         VectorRepository.SearchResult::source,
@@ -72,7 +72,10 @@ public class RagService {
                         m -> new ArrayList<>(m.values())
                 ));
 
-        // 6️⃣ Monta contexto com limite de tamanho
+        // 6️⃣ REORDENA POR CHUNK_INDEX (Para manter a ordem lógica do texto)
+        unique.sort(Comparator.comparingInt(VectorRepository.SearchResult::chunkIndex));
+
+        // 7️⃣ Monta contexto com limite de tamanho
         StringBuilder contextBuilder = new StringBuilder();
 
         for (var r : unique) {
@@ -91,30 +94,20 @@ public class RagService {
 
         String context = contextBuilder.toString();
 
-        // 7️⃣ Prompt anti-alucinação
+        // 8️⃣ Prompt para TinyLlama
         String prompt = """
-Você é um assistente técnico especialista.
+Você é um assistente útil. Responda à pergunta com base APENAS no contexto abaixo.
 
-Responda de forma COMPLETA, DETALHADA e BEM ESTRUTURADA,
-utilizando EXCLUSIVAMENTE as informações do CONTEXTO.
-
-Use todas as informações relevantes encontradas.
-Organize em parágrafos claros.
-
-Se não houver informação suficiente no contexto, diga:
-"Não encontrei essa informação no contexto."
-
-CONTEXTO:
+Contexto:
 %s
 
-PERGUNTA:
-%s
+Pergunta: %s
 
-RESPOSTA COMPLETA:
+Resposta:
 """.formatted(context, question);
 
 
-        // 8️⃣ Geração
+        // 9️⃣ Geração
         String answer = ollamaService.generate(prompt);
 
         return new RagAnswer(answer, unique);

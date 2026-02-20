@@ -25,6 +25,10 @@ public class VectorRepository {
             INSERT INTO documents
             (id, document_name, source, page, chunk_index, content, embedding)
             VALUES (:id, :documentName, :source, :page, :chunkIndex, :content, :embedding::vector)
+            ON CONFLICT (document_name, page, chunk_index) 
+            DO UPDATE SET 
+                content = EXCLUDED.content,
+                embedding = EXCLUDED.embedding
         """;
 
         Map<String, Object> params = new HashMap<>();
@@ -45,8 +49,10 @@ public class VectorRepository {
             SELECT id,
                    source,
                    content,
+                   chunk_index,
                    (embedding <=> :qvec::vector) AS distance
             FROM documents
+            WHERE (embedding <=> :qvec::vector) < :threshold
             ORDER BY distance ASC
             LIMIT :k
         """;
@@ -61,6 +67,7 @@ public class VectorRepository {
                         UUID.fromString(rs.getString("id")),
                         rs.getString("source"),
                         rs.getString("content"),
+                        rs.getInt("chunk_index"),
                         rs.getDouble("distance")
                 )
         );
@@ -78,6 +85,7 @@ public class VectorRepository {
             UUID id,
             String source,
             String content,
+            int chunkIndex,
             double distance
     ) {}
 }
