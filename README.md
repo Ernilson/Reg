@@ -1,5 +1,3 @@
-
-
 embedding model: nomic-embed-text → normalmente retorna vetor 768 dimensões.
 Então o VECTOR(768)
 
@@ -42,13 +40,17 @@ curl http://localhost:11434/api/embeddings -d '{
   "model": "nomic-embed-text",
   "prompt": "teste"
 }'
----------------------------------------------------------------------------
+------------------------------tinyllama---------------------------------------------
 docker exec -it ollama ollama pull tinyllama
 docker exec -it ollama ollama pull nomic-embed-text
 ollama pull nomic-embed-text
 ollama pull tinyllama
-----------------------------------------------------------------------------
-
+-----------------------------phi3:mini-----------------------------------------------
+docker exec -it ollama ollama pull phi3:mini
+docker exec -it ollama ollama pull nomic-embed-text
+ollama pull nomic-embed-text
+ollama pull phi3:mini
+-----------------------------------------------------------------------------------
 
 # 🚀 RAG Local com Spring Boot + Ollama + PostgreSQL (pgvector)
 
