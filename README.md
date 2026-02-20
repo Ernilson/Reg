@@ -43,6 +43,11 @@ curl http://localhost:11434/api/embeddings -d '{
   "prompt": "teste"
 }'
 ---------------------------------------------------------------------------
+docker exec -it ollama ollama pull tinyllama
+docker exec -it ollama ollama pull nomic-embed-text
+ollama pull nomic-embed-text
+ollama pull tinyllama
+----------------------------------------------------------------------------
 
 
 # 🚀 RAG Local com Spring Boot + Ollama + PostgreSQL (pgvector)
