@@ -3,19 +3,26 @@
 embedding model: nomic-embed-text → normalmente retorna vetor 768 dimensões.
 Então o VECTOR(768)
 
-CREATE EXTENSION IF NOT EXISTS vector;
+CREATE TABLE documents (
+    id UUID PRIMARY KEY,
+    document_name TEXT NOT NULL,   -- nome do PDF
+    source TEXT NOT NULL,          -- pode ser o mesmo que document_name ou tipo
+    page INT NOT NULL,
+    chunk_index INT NOT NULL,
+    content TEXT NOT NULL,
+    embedding vector(768) NOT NULL,
+    created_at TIMESTAMP DEFAULT now(),
 
-CREATE TABLE IF NOT EXISTS documents (
-  id UUID PRIMARY KEY,
-  source TEXT,
-  content TEXT NOT NULL,
-  embedding VECTOR(768) NOT NULL,
-  created_at TIMESTAMP DEFAULT now()
+    CONSTRAINT unique_chunk UNIQUE (document_name, page, chunk_index)
 );
 
--- índice para busca vetorial (cosine)
-CREATE INDEX IF NOT EXISTS idx_documents_embedding
-ON documents USING hnsw (embedding vector_cosine_ops);
+CREATE INDEX idx_documents_embedding
+ON documents
+USING hnsw (embedding vector_cosine_ops)
+WITH (m = 16, ef_construction = 64);
+
+
+DROP TABLE documents;
 ------------------------------------------------------------
 modelo leve
 docker exec -it ollama ollama pull phi3
