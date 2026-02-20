@@ -2,6 +2,8 @@ server:
   port: 8080
 
 spring:
+  jpa:
+    open-in-view: false
   datasource:
     url: jdbc:postgresql://localhost:5432/ragdb
     username: rag
@@ -9,10 +11,11 @@ spring:
 
 ollama:
   base-url: http://localhost:11434
-  chat-model: phi3:latest
+  chat-model: tinyllama
   embedding-model: nomic-embed-text:latest
 
 rag:
   top-k: 3
   threshold: 0.65
-  max-context-chars: 4000
+  max-context-chars: 3500
+  max-chunks-per-source: 2

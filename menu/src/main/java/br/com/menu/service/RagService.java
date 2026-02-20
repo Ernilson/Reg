@@ -16,27 +16,52 @@ public class RagService {
     private final VectorRepository vectorRepository;
     private final OllamaService ollamaService;
 
-    @Value("${rag.top-k:3}")
+    @Value("${rag.top-k:5}")
     private int topK;
 
-    @Value("${rag.threshold:0.7}")
+    @Value("${rag.threshold:0.6}")
     private double threshold;
 
     @Value("${rag.max-context-chars:4000}")
     private int maxContextChars;
 
+    @Value("${rag.max-chunks-per-source:2}")
+    private int maxChunksPerSource;
+
+
     public RagAnswer ask(String question) {
 
-        // 1) Embedding da pergunta
+        // 1️⃣ Embedding
         var qVec = embeddingService.generateEmbedding(question);
 
-        // 2) Busca vetorial
+        // 2️⃣ Busca vetorial
         var results = vectorRepository.searchTopK(qVec, topK, threshold);
 
-        // 3) Remove duplicação + ordena + aplica threshold
-        var filtered = results.stream()
+        // 3️⃣ Ordena por relevância
+        var sorted = results.stream()
                 .sorted(Comparator.comparingDouble(VectorRepository.SearchResult::distance))
+                .toList();
+
+        // 4️⃣ Filtra por threshold + limita por source
+        var limitedPerSource = sorted.stream()
                 .filter(r -> r.distance() <= threshold)
+                .collect(Collectors.groupingBy(
+                        VectorRepository.SearchResult::source,
+                        LinkedHashMap::new,
+                        Collectors.collectingAndThen(
+                                Collectors.toList(),
+                                list -> list.stream()
+                                        .limit(maxChunksPerSource)
+                                        .toList()
+                        )
+                ))
+                .values()
+                .stream()
+                .flatMap(List::stream)
+                .toList();
+
+        // 5️⃣ Remove duplicação por conteúdo
+        var unique = limitedPerSource.stream()
                 .collect(Collectors.collectingAndThen(
                         Collectors.toMap(
                                 VectorRepository.SearchResult::content,
@@ -47,60 +72,54 @@ public class RagService {
                         m -> new ArrayList<>(m.values())
                 ));
 
-        // 4) Se nada passou no threshold → resposta segura
-        if (filtered.isEmpty()) {
-            return new RagAnswer(
-                    "Não encontrei essa informação no contexto.",
-                    Collections.emptyList()
-            );
-        }
-
-        // 5) Construção segura do contexto com limite de tamanho
+        // 6️⃣ Monta contexto com limite de tamanho
         StringBuilder contextBuilder = new StringBuilder();
-        int totalChars = 0;
 
-        for (var r : filtered) {
-
+        for (var r : unique) {
             String chunk = """
-                    Fonte: %s
+                    [Documento: %s]
                     %s
-
+                    
                     """.formatted(r.source(), r.content());
 
-            if (totalChars + chunk.length() > maxContextChars) {
+            if (contextBuilder.length() + chunk.length() > maxContextChars) {
                 break;
             }
 
             contextBuilder.append(chunk);
-            totalChars += chunk.length();
         }
 
         String context = contextBuilder.toString();
 
-        // 6) Prompt anti-alucinação
+        // 7️⃣ Prompt anti-alucinação
         String prompt = """
-                Você é um assistente técnico.
-                Responda APENAS usando o CONTEXTO.
-                Se não houver informação suficiente no contexto, diga:
-                "Não encontrei essa informação no contexto."
+Você é um assistente técnico especialista.
 
-                CONTEXTO:
-                %s
+Responda de forma COMPLETA, DETALHADA e BEM ESTRUTURADA,
+utilizando EXCLUSIVAMENTE as informações do CONTEXTO.
 
-                PERGUNTA:
-                %s
+Use todas as informações relevantes encontradas.
+Organize em parágrafos claros.
 
-                RESPOSTA:
-                """.formatted(context, question);
+Se não houver informação suficiente no contexto, diga:
+"Não encontrei essa informação no contexto."
 
-        // 7) Geração
+CONTEXTO:
+%s
+
+PERGUNTA:
+%s
+
+RESPOSTA COMPLETA:
+""".formatted(context, question);
+
+
+        // 8️⃣ Geração
         String answer = ollamaService.generate(prompt);
 
-        return new RagAnswer(answer, filtered);
+        return new RagAnswer(answer, unique);
     }
 
-    public record RagAnswer(
-            String answer,
-            List<VectorRepository.SearchResult> sources
-    ) {}
+    public record RagAnswer(String answer,
+                            List<VectorRepository.SearchResult> sources) {}
 }

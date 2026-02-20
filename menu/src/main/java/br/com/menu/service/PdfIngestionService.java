@@ -38,6 +38,8 @@ public class PdfIngestionService {
 
                 List<String> chunks = chunkText(text);
 
+                String documentName = file.getOriginalFilename();
+
                 for (int i = 0; i < chunks.size(); i++) {
 
                     String chunk = chunks.get(i);
@@ -47,12 +49,14 @@ public class PdfIngestionService {
 
                     vectorRepository.insertDocument(
                             UUID.randomUUID(),
-                            file.getOriginalFilename(),
+                            documentName,   // document_name
+                            "pdf",          // source
                             page,
                             i,
                             chunk,
                             embedding
                     );
+
                 }
             }
         }

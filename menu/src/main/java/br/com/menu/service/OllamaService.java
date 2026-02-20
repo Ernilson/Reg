@@ -6,6 +6,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.Map;
 
@@ -30,22 +31,29 @@ public class OllamaService {
         Map<String, Object> request = Map.of(
                 "model", model,
                 "prompt", prompt,
-                "stream", false
+                "stream", false,
+                "options", Map.of(
+                        "temperature", 0.4,
+                        "num_predict", 200
+                )
         );
 
-        Map<String, Object> response = client.post()
-                .uri("/api/generate")
-                .contentType(MediaType.APPLICATION_JSON)   // 🔥 ESSENCIAL
-                .bodyValue(request)
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                .block();
+        try {
+            Map<String, Object> response = client.post()
+                    .uri("/api/generate")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(request)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                    .block();
 
-        if (response == null || !response.containsKey("response")) {
-            throw new IllegalStateException("Resposta inválida do Ollama: " + response);
+            if (response == null || !response.containsKey("response")) {
+                throw new IllegalStateException("Resposta inválida do Ollama: " + response);
+            }
+
+            return response.get("response").toString();
+        } catch (WebClientResponseException e) {
+            throw new IllegalStateException("Erro ao chamar Ollama (" + e.getStatusCode() + "): " + e.getResponseBodyAsString(), e);
         }
-
-        return response.get("response").toString();
     }
 }
-

@@ -1,11 +1,9 @@
 package br.com.menu.repository;
 
-import com.pgvector.PGvector;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -15,45 +13,32 @@ public class VectorRepository {
 
     private final NamedParameterJdbcTemplate jdbc;
 
-    // ==============================
-    // INSERT DOCUMENT
-    // ==============================
     public void insertDocument(UUID id,
                                String source,
+                               String documentName,
                                int page,
                                int chunkIndex,
                                String content,
-                               List<Double> embedding) throws SQLException {
+                               List<Double> embedding) {
 
         String sql = """
-        INSERT INTO documents (id, source, page, chunk_index, content, embedding)
-        VALUES (:id, :source, :page, :chunkIndex, :content, :embedding)
-    """;
+            INSERT INTO documents
+            (id, document_name, source, page, chunk_index, content, embedding)
+            VALUES (:id, :documentName, :source, :page, :chunkIndex, :content, :embedding::vector)
+        """;
 
         Map<String, Object> params = new HashMap<>();
         params.put("id", id);
+        params.put("documentName", documentName);
         params.put("source", source);
         params.put("page", page);
         params.put("chunkIndex", chunkIndex);
         params.put("content", content);
         params.put("embedding", toVectorLiteral(embedding));
 
-        // 👇 AQUI FICA O PGvector
-        PGvector pgVector = new PGvector(
-                Arrays.toString(embedding.stream()
-                        .mapToDouble(Double::doubleValue)
-                        .toArray())
-        );
-        ;
-
-        params.put("embedding", pgVector);
-
         jdbc.update(sql, params);
     }
 
-    // ==============================
-    // SEARCH TOP-K (COSINE DISTANCE)
-    // ==============================
     public List<SearchResult> searchTopK(List<Double> queryEmbedding, int k, double threshold) {
 
         String sql = """
@@ -62,8 +47,7 @@ public class VectorRepository {
                    content,
                    (embedding <=> :qvec::vector) AS distance
             FROM documents
-            WHERE (embedding <=> :qvec::vector) < :threshold
-            ORDER BY embedding <=> :qvec::vector
+            ORDER BY distance ASC
             LIMIT :k
         """;
 
@@ -82,9 +66,6 @@ public class VectorRepository {
         );
     }
 
-    // ==============================
-    // VECTOR -> STRING FORMAT
-    // ==============================
     private String toVectorLiteral(List<Double> vector) {
         return "[" +
                 vector.stream()
@@ -93,14 +74,10 @@ public class VectorRepository {
                 + "]";
     }
 
-    // ==============================
-    // RESULT RECORD
-    // ==============================
     public record SearchResult(
             UUID id,
             String source,
             String content,
             double distance
     ) {}
-
 }
