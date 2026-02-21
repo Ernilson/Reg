@@ -35,7 +35,7 @@ public class OllamaService {
                 "options", Map.of(
                         "temperature", 0.1,
                         "num_predict", 80,
-                        "num_ctx", 512
+                        "num_ctx", 1024
                 )
         );
 

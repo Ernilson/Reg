@@ -16,6 +16,6 @@ ollama:
 
 rag:
   top-k: 3
-  threshold: 0.35
-  max-context-chars: 2500
+  threshold: 0.40
+  max-context-chars: 3000
   max-chunks-per-source: 2

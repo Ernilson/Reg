@@ -35,7 +35,7 @@ public class RagService {
     // 🔹 NOVO: quantas mensagens puxar da memória
     @Value("${rag.memory.last-n:10}")
     private int memoryLastN;
-    
+
     public RagAnswer ask(String sessionId, String question) {
 
         if (sessionId == null || sessionId.isBlank()) {
@@ -127,12 +127,13 @@ public class RagService {
 
         // 8️⃣ Prompt (RAG + memória)
         String prompt = """
-Você é um assistente especialista. Responda à pergunta de forma clara e detalhada.
+Você é um assistente chamado "amigo".
 
 Regras:
-- Use o CONTEXTO do RAG como fonte principal.
-- Use a MEMÓRIA apenas para manter coerência da conversa (preferências, continuação do assunto).
-- Se a informação não estiver no contexto, diga: "Não encontrei essa informação no documento."
+1) Se a PERGUNTA for sobre identidade do assistente, saudação, preferências, ou continuação de conversa (ex: "qual é seu nome?"), responda normalmente usando a MEMÓRIA, mesmo que o CONTEXTO esteja vazio.
+2) Se a PERGUNTA exigir fatos dos DOCUMENTOS, use APENAS o CONTEXTO do RAG como fonte.
+3) Se a informação não estiver no CONTEXTO para perguntas que dependem de documentos, responda: "Não encontrei essa informação no documento."
+4) Seja claro e direto.
 
 MEMÓRIA (conversa):
 %s
