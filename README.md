@@ -1,5 +1,3 @@
-
-
 embedding model: nomic-embed-text → normalmente retorna vetor 768 dimensões.
 Então o VECTOR(768)
 
@@ -21,6 +19,16 @@ ON documents
 USING hnsw (embedding vector_cosine_ops)
 WITH (m = 16, ef_construction = 64);
 
+CREATE TABLE IF NOT EXISTS chat_memory (
+  id UUID PRIMARY KEY,
+  session_id TEXT NOT NULL,
+  role TEXT NOT NULL,          -- 'user' | 'assistant' | 'system'
+  content TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_chat_memory_session_time
+  ON chat_memory (session_id, created_at DESC);
 
 DROP TABLE documents;
 ------------------------------------------------------------
@@ -42,13 +50,17 @@ curl http://localhost:11434/api/embeddings -d '{
   "model": "nomic-embed-text",
   "prompt": "teste"
 }'
----------------------------------------------------------------------------
+------------------------------tinyllama---------------------------------------------
 docker exec -it ollama ollama pull tinyllama
 docker exec -it ollama ollama pull nomic-embed-text
 ollama pull nomic-embed-text
 ollama pull tinyllama
-----------------------------------------------------------------------------
-
+-----------------------------phi3:mini-----------------------------------------------
+docker exec -it ollama ollama pull phi3:mini
+docker exec -it ollama ollama pull nomic-embed-text
+ollama pull nomic-embed-text
+ollama pull phi3:mini
+-----------------------------------------------------------------------------------
 
 # 🚀 RAG Local com Spring Boot + Ollama + PostgreSQL (pgvector)
 
