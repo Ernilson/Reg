@@ -47,7 +47,9 @@ public class VectorRepository {
 
         String sql = """
             SELECT id,
+                   document_name,
                    source,
+                   page,
                    content,
                    chunk_index,
                    (embedding <=> :qvec::vector) AS distance
@@ -65,7 +67,9 @@ public class VectorRepository {
         return jdbc.query(sql, params, (rs, rowNum) ->
                 new SearchResult(
                         UUID.fromString(rs.getString("id")),
+                        rs.getString("document_name"),
                         rs.getString("source"),
+                        rs.getInt("page"),
                         rs.getString("content"),
                         rs.getInt("chunk_index"),
                         rs.getDouble("distance")
@@ -81,9 +85,12 @@ public class VectorRepository {
                 + "]";
     }
 
+    // VectorRepository.java
     public record SearchResult(
             UUID id,
+            String documentName,
             String source,
+            int page,
             String content,
             int chunkIndex,
             double distance

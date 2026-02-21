@@ -1,6 +1,7 @@
 package br.com.menu.service;
 
 import br.com.menu.repository.VectorRepository;
+import br.com.menu.repository.ChatMemoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,9 @@ public class RagService {
     private final VectorRepository vectorRepository;
     private final OllamaService ollamaService;
 
+    // 🔹 NOVO: memória
+    private final ChatMemoryRepository chatMemoryRepository;
+
     @Value("${rag.top-k:5}")
     private int topK;
 
@@ -28,8 +32,18 @@ public class RagService {
     @Value("${rag.max-chunks-per-source:2}")
     private int maxChunksPerSource;
 
+    // 🔹 NOVO: quantas mensagens puxar da memória
+    @Value("${rag.memory.last-n:10}")
+    private int memoryLastN;
+    
+    public RagAnswer ask(String sessionId, String question) {
 
-    public RagAnswer ask(String question) {
+        if (sessionId == null || sessionId.isBlank()) {
+            sessionId = "default";
+        }
+
+        // 0️⃣ Salva pergunta do usuário na memória
+        chatMemoryRepository.add(UUID.randomUUID(), sessionId, "user", question);
 
         // 1️⃣ Embedding
         var qVec = embeddingService.generateEmbedding(question);
@@ -80,10 +94,16 @@ public class RagService {
 
         for (var r : unique) {
             String chunk = """
-                    [Documento: %s]
+                    [Documento: %s | pág: %s | chunk: %s]
                     %s
-                    
-                    """.formatted(r.source(), r.content());
+
+                    """.formatted(
+                    r.source(),
+                    r.page(),
+                    r.content(),       // se seu SearchResult ainda não tem page, remove aqui
+                    r.chunkIndex(),
+                    r.content()
+            );
 
             if (contextBuilder.length() + chunk.length() > maxContextChars) {
                 break;
@@ -94,21 +114,42 @@ public class RagService {
 
         String context = contextBuilder.toString();
 
-        // 8️⃣ Prompt para TinyLlama
-        String prompt = """
-Você é um assistente útil. Responda à pergunta com base APENAS no contexto abaixo.
+        // 🔹 7.1️⃣ Carrega memória da conversa (últimas N mensagens)
+        var memoryDesc = chatMemoryRepository.lastMessages(sessionId, memoryLastN);
 
-Contexto:
+        // vem DESC -> reverte pra ficar cronológico no prompt
+        var memory = new ArrayList<>(memoryDesc);
+        Collections.reverse(memory);
+
+        String memoryText = memory.stream()
+                .map(m -> m.role() + ": " + m.content())
+                .collect(Collectors.joining("\n"));
+
+        // 8️⃣ Prompt (RAG + memória)
+        String prompt = """
+Você é um assistente especialista. Responda à pergunta de forma clara e detalhada.
+
+Regras:
+- Use o CONTEXTO do RAG como fonte principal.
+- Use a MEMÓRIA apenas para manter coerência da conversa (preferências, continuação do assunto).
+- Se a informação não estiver no contexto, diga: "Não encontrei essa informação no documento."
+
+MEMÓRIA (conversa):
+%s
+
+CONTEXTO (documentos):
 %s
 
 Pergunta: %s
 
 Resposta:
-""".formatted(context, question);
-
+""".formatted(memoryText, context, question);
 
         // 9️⃣ Geração
         String answer = ollamaService.generate(prompt);
+
+        // 🔟 Salva resposta do assistente na memória
+        chatMemoryRepository.add(UUID.randomUUID(), sessionId, "assistant", answer);
 
         return new RagAnswer(answer, unique);
     }

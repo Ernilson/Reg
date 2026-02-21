@@ -11,11 +11,11 @@ spring:
 
 ollama:
   base-url: http://localhost:11434
-  chat-model: tinyllama
+  chat-model: phi3:mini
   embedding-model: nomic-embed-text:latest
 
 rag:
   top-k: 3
-  threshold: 0.65
-  max-context-chars: 3500
+  threshold: 0.35
+  max-context-chars: 2500
   max-chunks-per-source: 2

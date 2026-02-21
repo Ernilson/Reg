@@ -1,5 +1,4 @@
 services:
-
   postgres:
     image: pgvector/pgvector:pg16
     container_name: rag-postgres
@@ -19,8 +18,9 @@ services:
       - "11434:11434"
     volumes:
       - ollama:/root/.ollama
+    restart: always
+
 
 volumes:
   pgdata:
   ollama:
-
