@@ -52,6 +52,12 @@ curl http://localhost:11434/api/embeddings -d '{
   "model": "nomic-embed-text",
   "prompt": "teste"
 }'
+
+{
+	"sessionId": "daniel-1",
+	"question" : "O que você faz atualmente?"
+}
+
 ------------------------------tinyllama---------------------------------------------
 docker exec -it ollama ollama pull tinyllama
 docker exec -it ollama ollama pull nomic-embed-text
