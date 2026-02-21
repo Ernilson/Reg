@@ -1,7 +1,7 @@
 embedding model: nomic-embed-text → normalmente retorna vetor 768 dimensões.
 VECTOR(768)
 
-CREATE INDEX IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS vector;
 
 CREATE TABLE documents (
     id UUID PRIMARY KEY,
